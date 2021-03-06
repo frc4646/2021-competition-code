@@ -17,9 +17,13 @@ import frc.robot.Constants;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
-/*import com.analog.adis16470.frc.ADIS16470_IMU;
+
+import com.analog.adis16470.frc.ADIS16470_IMU;
 import com.analog.adis16470.frc.ADIS16470_IMU.IMUAxis;
-import com.analog.adis16470.frc.ADIS16470_IMU.ADIS16470CalibrationTime;*/
+import com.analog.adis16470.frc.ADIS16470_IMU.ADIS16470CalibrationTime;
+import edu.wpi.first.wpilibj.SPI;
+
+import edu.wpi.first.wpilibj.controller.PIDController;
 
 public class Drivetrain extends SubsystemBase {
 
@@ -27,13 +31,23 @@ public class Drivetrain extends SubsystemBase {
   private final WPI_TalonSRX frontRightDrive;
   private final WPI_VictorSPX backLeftDrive;
   private final WPI_VictorSPX backRightDrive;
-  private final DifferentialDrive m_drive;
+  //private final DifferentialDrive m_drive;
 
   //private final Encoder rightEncoder;
   //private final Encoder leftEncoder;
 
   private final int encoderCountsPerInch;
-   //private final ADIS16470_IMU imu;
+
+  private final ADIS16470_IMU imu;
+  private final PIDController turn_PID;
+
+  public double turn_kP;
+  public double turn_kI;
+  public double turn_kD;
+  public double turn_tolerance;
+  public double turn_derivativeTolerance;
+  public double turn_error;
+  
 
   /**
    * Creates a new Drivetrain.
@@ -64,14 +78,22 @@ public class Drivetrain extends SubsystemBase {
 
     backLeftDrive.follow(frontLeftDrive);
     backRightDrive.follow(frontRightDrive);
-
-
-    m_drive = new DifferentialDrive(frontRightDrive, backLeftDrive);
+ 
+    //m_drive = new DifferentialDrive(frontRightDrive, backLeftDrive);
 
     encoderCountsPerInch = 0;
 
-    //imu = new ADIS16470_IMU(IMUAxis.kZ, SPI.Port.kOnboardCS0, ADIS16470CalibrationTime._4s);
     
+    imu = new ADIS16470_IMU(IMUAxis.kZ, SPI.Port.kOnboardCS0, ADIS16470CalibrationTime._4s);
+    imu.reset();
+
+    turn_kP = .3; turn_kI = 0; turn_kD = 0;
+    turn_tolerance = 1;
+    turn_derivativeTolerance = .01;
+    turn_error = -imu.getRate();
+
+    turn_PID = new PIDController(turn_kP, turn_kI, turn_kD);
+    turn_PID.setTolerance(turn_tolerance, turn_derivativeTolerance);
   }
 
   @Override
@@ -100,6 +122,13 @@ public class Drivetrain extends SubsystemBase {
     //backRightDrive.set(ControlMode.Follower, frontRightDrive.getDeviceID());
   }
 
+  public void driveByAngle(double targetAngle)
+  {
+    double calculatedPID = turn_PID.calculate(getAngle(), targetAngle);
+    frontLeftDrive.set(ControlMode.PercentOutput, calculatedPID);
+    frontRightDrive.set(ControlMode.PercentOutput, -calculatedPID);
+  }
+
   public double[] getDriveEncoderDistance(){
     return new double[] {frontLeftDrive.getSelectedSensorPosition() / encoderCountsPerInch, frontRightDrive.getSelectedSensorPosition() / encoderCountsPerInch};
   }
@@ -108,27 +137,38 @@ public class Drivetrain extends SubsystemBase {
     return new double[] {frontLeftDrive.getSelectedSensorPosition(), frontRightDrive.getSelectedSensorPosition()};
   }
 
-  public void resetGyro(){
-    //imu.calibrate();
-  }
-
   public void resetEncoders()
   {
     frontLeftDrive.setSelectedSensorPosition(0, 0, 10);
     frontRightDrive.setSelectedSensorPosition(0, 0, 10);
   }
+
+  public void resetGyro(){
+    imu.calibrate();
+  }
+
   public double getAngle(){
-    return 0.0;//imu.getAngle();
+    return imu.getAngle();
+  }
+
+  public boolean atTargetAngle()
+  {
+    return turn_PID.atSetpoint();
+  }
+
+  public void resetTurnPID()
+  {
+    turn_PID.reset();
   }
 
   public void StraightDrive(double speed) {
-    double gyroCurve = getAngle()/90.0;
+    /*double gyroCurve = getAngle()/90.0;
 	  if (speed > 0) {
       m_drive.curvatureDrive(speed, gyroCurve, false);
   	}
   	else {
       m_drive.curvatureDrive(speed, gyroCurve, false);
-  	}
+  	}*/
 
   }
 

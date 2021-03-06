@@ -14,9 +14,9 @@ import frc.robot.subsystems.*;
 import frc.robot.commandGroups.*;
 import frc.robot.commands.DriveTeleOp;
 
-/*import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.cscore.CvSink;
-import edu.wpi.cscore.CvSource;*/
+import edu.wpi.cscore.CvSource;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -32,12 +32,12 @@ public class Robot extends TimedRobot {
   public static Climber m_climber;
   public static Intake m_intake;
   public static Launcher m_launcher;
-  public static Vision m_vision;
+  public static Limelight m_limelight;
   public static RobotContainer m_robotContainer;
 
   public static DriveToLaunch m_autonomousDriveToLaunch;
 
-  //CvSink cvSink;
+  CvSink cvSink;
   //CvSource outputStream;
 
   /**
@@ -54,15 +54,15 @@ public class Robot extends TimedRobot {
     m_climber = new Climber();
     m_intake = new Intake();
     m_launcher = new Launcher();
-    m_vision = new Vision();
+    m_limelight = new Limelight();
     m_robotContainer = new RobotContainer();
 
     m_autonomousDriveToLaunch = new DriveToLaunch();
     
-    /*CameraServer.getInstance().startAutomaticCapture();
+    CameraServer.getInstance().startAutomaticCapture();
     cvSink = CameraServer.getInstance().getVideo();
-    outputStream = CameraServer.getInstance().putVideo("Camera", 640, 480);
-    outputStream.setFPS(20);*/
+    //outputStream = CameraServer.getInstance().putVideo("Camera", 640, 480);
+    //outputStream.setFPS(20);
 
     m_autonomousCommand = m_autonomousDriveToLaunch;
   }

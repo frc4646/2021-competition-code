@@ -7,77 +7,65 @@
 
 package frc.robot.subsystems;
 
-import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 
 import com.revrobotics.CANSparkMaxLowLevel;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANEncoder;
+import edu.wpi.first.wpilibj.controller.PIDController;
 
 
 public class Launcher extends SubsystemBase {
   /**
    * Creates a new Lawn Chair.
    */
-  CANSparkMax launcherSpark1;
-  CANSparkMax launcherSpark2;
+  CANSparkMax launcherSpark;
   CANEncoder launcherEncoder;
-
-  Servo pan, tilt;
 
   //int deviceID;
   //CANSparkMaxLowLevel.MotorType type = CANSparkMaxLowLevel.MotorType.kBrushless;
   double launchSpeed;
   double encoderCountsPerInch;
+  
+  private final PIDController launch_PID;
+
+  public double launch_kP;
+  public double launch_kI;
+  public double launch_kD;
+  public double launch_tolerance;
+  public double launch_derivativeTolerance;
+  public double launch_error;
 
   public Launcher() {
 
-    launcherSpark1 = new CANSparkMax(Constants.launcherID1, CANSparkMaxLowLevel.MotorType.kBrushless);
-    launcherSpark2 = new CANSparkMax(Constants.launcherID2, CANSparkMaxLowLevel.MotorType.kBrushless);
+    launcherSpark = new CANSparkMax(Constants.launcherID, CANSparkMaxLowLevel.MotorType.kBrushless);
     
-    launcherSpark1.restoreFactoryDefaults();
-    launcherSpark2.restoreFactoryDefaults();
+    launcherSpark.restoreFactoryDefaults();
 
-    launcherSpark1.setInverted(true);
-    launcherSpark2.follow(launcherSpark1, true);
+    launcherSpark.setInverted(false);
 
-    launcherSpark1.burnFlash();
-    launcherSpark2.burnFlash();
+    launcherSpark.burnFlash();
     
     launchSpeed = 0.8; //this is temporary, we'll find the right number through trial and error?
-    launcherEncoder = launcherSpark1.getEncoder();
+    launcherEncoder = launcherSpark.getEncoder();
 
-    pan = new Servo(Constants.PAN_PORT);
-    tilt = new Servo(Constants.TILT_PORT);
+    launch_kP = .3; launch_kI = 0; launch_kD = 0;
+    launch_tolerance = 1;
+    launch_derivativeTolerance = .01;
+    //launch_error = -launcherEncoder.getRate();
+
+    launch_PID = new PIDController(launch_kP, launch_kI, launch_kD);
+    launch_PID.setTolerance(launch_tolerance, launch_derivativeTolerance);
   }
 
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
   }
-
-  public void run() {
-    try {
-       Thread.sleep(10000);
-    } catch (InterruptedException ex) {
-       System.out.println("Interrupted");
-       Thread.currentThread().interrupt();
-       return;
-    }
- }
   
   public void StopLauncher() {
-    launcherSpark1.set(0);
-  }
-  public void setServos(double servoPan, double servoTilt) {
-    pan.set(servoPan);
-    tilt.set(servoTilt);
-  }
-
-  public double[] getServoPos() {
-    double[] array = {pan.get(), tilt.get()};
-    return array;
+    launcherSpark.set(0);
   }
 
   public double getSpeed() {
@@ -85,7 +73,16 @@ public class Launcher extends SubsystemBase {
   }
   
   public void setSpeed(double speed){
-    launcherSpark1.set(speed);
+    launcherSpark.set(speed);
+  }
+ 
+  public boolean atSetpoint()
+  {
+    return launch_PID.atSetpoint();
   }
 
+  public void resetPID()
+  {
+    launch_PID.reset();
+  }
 }

@@ -48,8 +48,7 @@ public final class Constants {
   
       //Launcher
 
-  public static final int launcherID1 = 7; //Known
-  public static final int launcherID2 = 8; //Known
+  public static final int launcherID = 8; //Known
   public static final int PAN_PORT = 5;
   public static final int TILT_PORT = 6;
 

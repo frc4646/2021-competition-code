@@ -5,8 +5,7 @@
 package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
-import frc.robot.subsystems.Vision;
-import frc.robot.subsystems.Drivetrain;
+import frc.robot.Robot;
 /* Procedure
 1) Given: Currently tracking a target
 2) Find where the target's position on the x-axis is
@@ -15,15 +14,11 @@ import frc.robot.subsystems.Drivetrain;
 
 public class AlignToTarget extends CommandBase {
   /** Creates a new AlignToTarget. */
-  private final Vision m_vision;
-  private final Drivetrain m_drivetrain;
-  public AlignToTarget(Vision vision, Drivetrain drivetrain) {
+  public AlignToTarget() {
     // Use addRequirements() here to declare subsystem dependencies.
-    m_vision = vision;
-    m_drivetrain = drivetrain;
 
-    addRequirements(m_vision);
-    addRequirements(m_drivetrain);
+    addRequirements(Robot.m_limelight);
+    addRequirements(Robot.m_drivetrain);
   }
 
   // Called when the command is initially scheduled.
@@ -33,31 +28,51 @@ public class AlignToTarget extends CommandBase {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    if (m_vision.IsTrackingTarget()) {
-      if (m_vision.TargetPos()[0] < -3) {
-          m_drivetrain.driveByPercent(.2, -.2);
+    /*if (Robot.m_vision.IsTrackingTarget()) {
+      System.out.println("Found target.");
+      if (Robot.m_vision.TargetPos()[0] < -3) {
+          System.out.println("Turn right.");
+          Robot.m_drivetrain.driveByPercent(.5, -.5);
       }      
-      else if (m_vision.TargetPos()[0] > 3) {
-          m_drivetrain.driveByPercent(-.2, .2);         
+      else if (Robot.m_vision.TargetPos()[0] > 3) {
+          System.out.println("Turn left.");
+          Robot.m_drivetrain.driveByPercent(-.5, .5);         
       }
-      else {
-        end(false);
-      }
-  }
-  else {
-    System.out.println("Cannot find target.");
-  }
+    }
+    else {
+      System.out.println("Cannot find target.");
+    }*/
+    Robot.m_drivetrain.driveByAngle(Robot.m_limelight.TargetPos()[0]);
+    System.out.println("Running AlignToTarget");
   }
 
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
-    m_drivetrain.driveByPercent(0, 0);
+    Robot.m_drivetrain.driveByPercent(0, 0);
+    System.out.println("AlignToTarget End");
   }
 
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
+    /*if (Robot.m_vision.TargetPos()[0] > -3
+    || Robot.m_vision.TargetPos()[0] < 3)
+    {
+      System.out.println("AlignToTarget task completed.");
+      return true;
+    }
+    else
+    {
+      return false;
+    }*/
+    
+    if (Robot.m_drivetrain.atTargetAngle())
+    {
+      System.out.println("At Target Angle: Is Finished Returns True");
+      System.out.println("AlignToTarget Finished");
+      return true;
+    }
     return false;
   }
 }

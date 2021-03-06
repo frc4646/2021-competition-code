@@ -127,6 +127,7 @@ public class RobotContainer {
 
         //left stick
         leftTrigger.whileHeld(new LaunchBalls());
+        leftButton4.whenPressed(new AlignToTarget());
     }
 
     /**
