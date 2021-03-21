@@ -9,6 +9,7 @@ package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.Robot;
+import edu.wpi.first.wpilibj.Timer;
 
 public class LaunchBalls extends CommandBase {
   /**
@@ -25,16 +26,16 @@ public class LaunchBalls extends CommandBase {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-
+    Robot.m_launcher.setSpeed(Robot.m_launcher.launchSpeedSmartDashboard);
+    Timer.delay(1.5f);
+    Robot.m_conveyor.UpTopConveyor();
+    Robot.m_conveyor.UpBottomConveyor();
   }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
     //Robot.m_conveyor.UpConveyor();
-    Robot.m_launcher.setSpeed(launcherSpeed);
-    Robot.m_conveyor.UpTopConveyor();
-    Robot.m_conveyor.UpBottomConveyor();
   }
 
   // Called once the command ends or is interrupted.

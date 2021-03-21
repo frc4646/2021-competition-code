@@ -15,6 +15,27 @@ import frc.robot.commands.*;
 
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj2.command.button.*;
+import frc.robot.Robot;
+//Pathweaver stuff
+import frc.robot.PathweaverConstants;
+
+import edu.wpi.first.wpilibj.trajectory.constraint.DifferentialDriveVoltageConstraint;
+import edu.wpi.first.wpilibj.controller.SimpleMotorFeedforward;
+import edu.wpi.first.wpilibj.trajectory.TrajectoryConfig;
+import edu.wpi.first.wpilibj.trajectory.Trajectory;
+import edu.wpi.first.wpilibj.trajectory.TrajectoryGenerator;
+import edu.wpi.first.wpilibj.geometry.Pose2d;
+import edu.wpi.first.wpilibj.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.geometry.Translation2d;
+import java.util.List;
+import java.nio.file.Path;
+import edu.wpi.first.wpilibj.Filesystem;
+import edu.wpi.first.wpilibj.trajectory.TrajectoryUtil;
+import java.io.IOException;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj2.command.RamseteCommand;
+import edu.wpi.first.wpilibj.controller.RamseteController;
+import edu.wpi.first.wpilibj.controller.PIDController;
 
 /**
  * This class is where the bulk of the robot should be declared. Since
@@ -29,6 +50,12 @@ public class RobotContainer {
     public final Joystick leftJoy = new Joystick(Constants.leftJoyPort);
     public final Joystick rightJoy = new Joystick(Constants.rightJoyPort);
     public final Joystick mechJoy = new Joystick(Constants.mechJoyPort);
+
+    //Pathwever
+    public String trajectoryJSON;
+    private Trajectory test1Trajectory;
+    private Path trajectoryPath;
+    private RamseteCommand ramseteCommand;
 
     public JoystickButton leftTrigger = new JoystickButton(leftJoy, 1), leftButton2 = new JoystickButton(leftJoy, 2),
             leftButton3 = new JoystickButton(leftJoy, 3), leftButton4 = new JoystickButton(leftJoy, 4),
@@ -128,6 +155,7 @@ public class RobotContainer {
         //left stick
         leftTrigger.whileHeld(new LaunchBalls());
         leftButton4.whenPressed(new AlignToTarget());
+        leftButton6.whenPressed(new AlignToTarget2());
     }
 
     /**
@@ -137,6 +165,34 @@ public class RobotContainer {
      */
     public Command getAutonomousCommand() {
         // An ExampleCommand will run in autonomous
-        return null;
+
+        //Pathweaver stuff
+    trajectoryJSON = "paths/Test1.wpilib.json";
+    trajectoryPath =  Filesystem.getDeployDirectory().toPath().resolve(trajectoryJSON);
+    try {
+      test1Trajectory = TrajectoryUtil.fromPathweaverJson(trajectoryPath);
+    }
+    catch (IOException ex) {
+      DriverStation.reportError("Unable to open trajectory: " + trajectoryJSON, ex.getStackTrace());
+    }
+
+    ramseteCommand = new RamseteCommand(
+        test1Trajectory,
+        Robot.m_drivetrain::getPose,
+        new RamseteController(PathweaverConstants.kRamseteB, PathweaverConstants.kRamseteZeta),
+        new SimpleMotorFeedforward(PathweaverConstants.ksVolts,
+                                   PathweaverConstants.kvVoltSecondsPerMeter,
+                                   PathweaverConstants.kaVoltSecondsSquaredPerMeter),
+        PathweaverConstants.kDriveKinematics,
+        Robot.m_drivetrain::getWheelSpeeds,
+        new PIDController(PathweaverConstants.kPDriveVel, 0, 0),
+        new PIDController(PathweaverConstants.kPDriveVel, 0, 0),
+        // RamseteCommand passes volts to the callback
+        Robot.m_drivetrain::driveByVolts,
+        Robot.m_drivetrain
+    );
+
+    Robot.m_drivetrain.resetOdometry(test1Trajectory.getInitialPose());
+    return ramseteCommand.andThen(() -> Robot.m_drivetrain.driveByVolts(0, 0));
     }
 }

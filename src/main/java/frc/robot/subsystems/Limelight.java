@@ -67,7 +67,8 @@ public class Limelight extends SubsystemBase {
   }
   public double getDistanceToTarget()
   {
-    return (targetHeight-mountingHeight)/Math.tan(Math.toRadians(mountingAngle + yOffset));
+    if (isTrackingTarget) return (targetHeight-mountingHeight)/Math.tan(Math.toRadians(mountingAngle + yOffset));
+    else return -1;
   }
 
   public boolean IsTrackingTarget()

@@ -13,6 +13,11 @@ import frc.robot.Robot;
 */
 
 public class AlignToTarget extends CommandBase {
+
+  private double headingError;
+  private double steeringAdjust;
+  private double minCommand = .15f;
+
   /** Creates a new AlignToTarget. */
   public AlignToTarget() {
     // Use addRequirements() here to declare subsystem dependencies.
@@ -28,22 +33,26 @@ public class AlignToTarget extends CommandBase {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    /*if (Robot.m_vision.IsTrackingTarget()) {
+    headingError = Robot.m_limelight.TargetPos()[0];
+    steeringAdjust = 0;
+    if (Robot.m_limelight.IsTrackingTarget()) {
       System.out.println("Found target.");
-      if (Robot.m_vision.TargetPos()[0] < -3) {
-          System.out.println("Turn right.");
-          Robot.m_drivetrain.driveByPercent(.5, -.5);
-      }      
-      else if (Robot.m_vision.TargetPos()[0] > 3) {
+      if (headingError >= 1) {
           System.out.println("Turn left.");
-          Robot.m_drivetrain.driveByPercent(-.5, .5);         
+          steeringAdjust = Robot.m_drivetrain.turn_kP*headingError+minCommand;
+      }      
+      else if (headingError <= 1) {
+          System.out.println("Turn right.");
+          steeringAdjust = Robot.m_drivetrain.turn_kP*headingError-minCommand;
       }
+      Robot.m_drivetrain.driveByPercent(-steeringAdjust, steeringAdjust);
+      System.out.println("Left Power: " + -steeringAdjust);
+      System.out.println("Right Power: " + steeringAdjust);
+      System.out.println("Error: " + headingError);
     }
     else {
       System.out.println("Cannot find target.");
-    }*/
-    Robot.m_drivetrain.driveByAngle(Robot.m_limelight.TargetPos()[0]);
-    System.out.println("Running AlignToTarget");
+    }
   }
 
   // Called once the command ends or is interrupted.
@@ -56,23 +65,16 @@ public class AlignToTarget extends CommandBase {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    /*if (Robot.m_vision.TargetPos()[0] > -3
-    || Robot.m_vision.TargetPos()[0] < 3)
+    if (Robot.m_limelight.TargetPos()[0] >= -1
+    && Robot.m_limelight.TargetPos()[0] <= 1)
     {
       System.out.println("AlignToTarget task completed.");
+      Robot.m_drivetrain.driveByPercent(0, 0);
       return true;
     }
     else
     {
       return false;
-    }*/
-    
-    if (Robot.m_drivetrain.atTargetAngle())
-    {
-      System.out.println("At Target Angle: Is Finished Returns True");
-      System.out.println("AlignToTarget Finished");
-      return true;
     }
-    return false;
   }
 }

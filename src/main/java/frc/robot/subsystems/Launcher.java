@@ -15,6 +15,8 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANEncoder;
 import edu.wpi.first.wpilibj.controller.PIDController;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+
 
 public class Launcher extends SubsystemBase {
   /**
@@ -37,6 +39,8 @@ public class Launcher extends SubsystemBase {
   public double launch_derivativeTolerance;
   public double launch_error;
 
+  public double launchSpeedSmartDashboard;
+
   public Launcher() {
 
     launcherSpark = new CANSparkMax(Constants.launcherID, CANSparkMaxLowLevel.MotorType.kBrushless);
@@ -57,11 +61,14 @@ public class Launcher extends SubsystemBase {
 
     launch_PID = new PIDController(launch_kP, launch_kI, launch_kD);
     launch_PID.setTolerance(launch_tolerance, launch_derivativeTolerance);
+
+    SmartDashboard.putNumber("Launch Speed", 0.8f);
   }
 
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
+    launchSpeedSmartDashboard = SmartDashboard.getNumber("Launch Speed", 0.8f);
   }
   
   public void StopLauncher() {

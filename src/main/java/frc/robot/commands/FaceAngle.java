@@ -40,7 +40,7 @@ public class FaceAngle extends CommandBase {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    double gyroAngle = Robot.m_drivetrain.getAngle();
+    /*double gyroAngle = Robot.m_drivetrain.getAngle();
 
     if (gyroAngle - tolerance < wantedAngle) //If gyro angle is less than the wanted angle:
     {
@@ -53,7 +53,8 @@ public class FaceAngle extends CommandBase {
     else
     {
       isWantedAngle = true;
-    }
+    }*/
+    Robot.m_drivetrain.driveToHeading(wantedAngle);
   }
 
   // Called once the command ends or is interrupted.
@@ -65,6 +66,7 @@ public class FaceAngle extends CommandBase {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return isWantedAngle;
+    //return isWantedAngle;
+    return Robot.m_drivetrain.atTargetAngle();
   }
 }
