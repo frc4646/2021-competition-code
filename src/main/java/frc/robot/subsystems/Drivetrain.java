@@ -18,6 +18,7 @@ import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.kinematics.DifferentialDriveOdometry;
 import edu.wpi.first.wpilibj.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import java.text.DecimalFormat;
 
 
 import com.kauailabs.navx.frc.AHRS;
@@ -25,6 +26,7 @@ import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.wpilibj.controller.PIDController;
 
 import edu.wpi.first.wpilibj.geometry.Pose2d;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 
 public class Drivetrain extends SubsystemBase {
 
@@ -49,9 +51,14 @@ public class Drivetrain extends SubsystemBase {
   public double turn_derivativeTolerance;
   public double turn_error;
   int maxEncoderTicks = 2048;
-  double circumference = Math.PI * 6 * 0.0254; //pi * distance * inches to meters
+  double circumference = Math.PI * 6 * 0.0254; //pi * distance * inches to meters // about .4785
 
-  
+  private double leftDist;
+  private double rightDist;
+
+  private DecimalFormat decimalScale = new DecimalFormat("#,###.##");
+
+  private final Field2d m_field;
 
   /**
    * Creates a new Drivetrain.
@@ -67,8 +74,8 @@ public class Drivetrain extends SubsystemBase {
     backLeftDrive.configFactoryDefault();
     backRightDrive.configFactoryDefault();
 
-    frontRightDrive.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder, 0, 10);
-    frontLeftDrive.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder, 0, 10);
+    frontRightDrive.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder); //, 0, 10)
+    frontLeftDrive.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder); //, 0, 10)
 
     frontLeftDrive.setInverted(true);
     frontRightDrive.setInverted(false);
@@ -77,8 +84,9 @@ public class Drivetrain extends SubsystemBase {
 
     frontLeftDrive.setSensorPhase(true);
     frontRightDrive.setSensorPhase(false);
-    backLeftDrive.setSensorPhase(true);
-    backRightDrive.setSensorPhase(false);
+
+    frontLeftDrive.setSelectedSensorPosition(0);
+    frontRightDrive.setSelectedSensorPosition(0);
 
     backLeftDrive.follow(frontLeftDrive);
     backRightDrive.follow(frontRightDrive);
@@ -87,7 +95,6 @@ public class Drivetrain extends SubsystemBase {
 
     encoderCountsPerInch = 0;
 
-    
     navX = new AHRS();
     navX.reset();
 
@@ -99,16 +106,33 @@ public class Drivetrain extends SubsystemBase {
     turn_PID.setTolerance(turn_tolerance, turn_derivativeTolerance);
 
     odometry = new DifferentialDriveOdometry(navX.getRotation2d());
+
+    m_field = new Field2d();
+    SmartDashboard.putData("Field", m_field);
   }
 
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
-    SmartDashboard.putNumber("Left Encoder", getDriveEncoderCount()[0]);
-    SmartDashboard.putNumber("Right Encoder", getDriveEncoderCount()[1]);
+    SmartDashboard.putNumber("Left Counts", frontLeftDrive.getSelectedSensorPosition());
+    SmartDashboard.putNumber("Right Counts", frontRightDrive.getSelectedSensorPosition());
 
-    odometry.update(navX.getRotation2d(), frontLeftDrive.getSelectedSensorPosition()*(circumference/maxEncoderTicks), 
-                                          frontRightDrive.getSelectedSensorPosition()*(circumference/maxEncoderTicks));
+    leftDist =  (frontLeftDrive.getSelectedSensorPosition()/4)*(circumference/maxEncoderTicks);
+    rightDist = (frontRightDrive.getSelectedSensorPosition()/4)*(circumference/maxEncoderTicks);
+
+    SmartDashboard.putNumber("Left Distance", leftDist);
+    SmartDashboard.putNumber("Right Distance", rightDist);
+
+    odometry.update(navX.getRotation2d(), (frontLeftDrive.getSelectedSensorPosition()/4)*(circumference/maxEncoderTicks), 
+                                          (frontRightDrive.getSelectedSensorPosition()/4)*(circumference/maxEncoderTicks));
+
+    SmartDashboard.putNumber("NavX Heading", getHeading());
+
+    SmartDashboard.putString("Odemetry Pos", "(" + decimalScale.format(odometry.getPoseMeters().getX()) + ", " + decimalScale.format(odometry.getPoseMeters().getY()) + ")");
+    //SmartDashboard.putNumber("Odemetry Y", odometry.getPoseMeters().getY());
+    SmartDashboard.putNumber("Odemetry Rotation", odometry.getPoseMeters().getRotation().getDegrees());
+
+    m_field.setRobotPose(odometry.getPoseMeters());
   }
 
   public void driveByPercent(double leftSpeed, double rightSpeed)
@@ -122,12 +146,10 @@ public class Drivetrain extends SubsystemBase {
   //TODO: NEED FRC CHARACTERIZATION TOOL TO SET PID VALUES!!!
   public void driveByEncoderInches(int leftInches, int rightInches)
   {
-    int leftCount = leftInches * encoderCountsPerInch;
-    int rightCount = rightInches * encoderCountsPerInch;
-    frontLeftDrive.set(ControlMode.Position, leftCount);
-    frontRightDrive.set(ControlMode.Position, rightCount);
-    //backLeftDrive.set(ControlMode.Follower, frontLeftDrive.getDeviceID());
-    //backRightDrive.set(ControlMode.Follower, frontRightDrive.getDeviceID());
+    //int leftCount = leftInches * encoderCountsPerInch;
+    //int rightCount = rightInches * encoderCountsPerInch;
+    //frontLeftDrive.set(ControlMode.Position, leftCount);
+    //frontRightDrive.set(ControlMode.Position, rightCount);
   }
 
   public void driveToHeading(double targetAngle)

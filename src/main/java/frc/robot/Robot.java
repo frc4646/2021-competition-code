@@ -8,6 +8,8 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.geometry.Pose2d;
+import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.subsystems.*;
@@ -33,6 +35,7 @@ public class Robot extends TimedRobot {
   public static Intake m_intake;
   public static Launcher m_launcher;
   public static Limelight m_limelight;
+  public static PhotonVision m_photonVision;
   public static RobotContainer m_robotContainer;
 
   public static DriveToLaunch m_autonomousDriveToLaunch;
@@ -55,6 +58,7 @@ public class Robot extends TimedRobot {
     m_intake = new Intake();
     m_launcher = new Launcher();
     m_limelight = new Limelight();
+    m_photonVision = new PhotonVision();
     m_robotContainer = new RobotContainer();
 
     m_autonomousDriveToLaunch = new DriveToLaunch();
@@ -65,6 +69,10 @@ public class Robot extends TimedRobot {
     //outputStream.setFPS(20);
 
     m_autonomousCommand = m_autonomousDriveToLaunch;
+    
+    Robot.m_drivetrain.resetEncoders();
+    Robot.m_drivetrain.zeroHeading();
+    Robot.m_drivetrain.resetOdometry(new Pose2d(0, 0, Rotation2d.fromDegrees(0)));
   }
 
   /**
@@ -99,7 +107,11 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void autonomousInit() {
-   // m_autonomousCommand = m_robotContainer.getAutonomousCommand();
+    Robot.m_drivetrain.resetEncoders();
+    Robot.m_drivetrain.zeroHeading();
+    Robot.m_drivetrain.resetOdometry(new Pose2d(0, 0, Rotation2d.fromDegrees(0)));
+
+    m_autonomousCommand = m_robotContainer.getAutonomousCommand();
 
     // schedule the autonomous command (example)
     if (m_autonomousCommand != null) {
@@ -116,6 +128,10 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopInit() {
+    Robot.m_drivetrain.resetEncoders();
+    Robot.m_drivetrain.zeroHeading();
+    Robot.m_drivetrain.resetOdometry(new Pose2d(0, 0, Rotation2d.fromDegrees(0)));
+    
     // This makes sure that the autonomous stops running when
     // teleop starts running. If you want the autonomous to
     // continue until interrupted by another command, remove

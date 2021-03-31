@@ -149,13 +149,16 @@ public class RobotContainer {
 
         // right stick
         rightTrigger.whileHeld(new DriveStraight());
-        rightButton5.whenPressed(new ResetEncodersTest());
-        rightButton2.whileHeld(new WinchPull());
+        rightButton5.whileHeld(new ZoneOne());
+        rightButton6.whileHeld(new ZoneTwo());
+        rightButton3.whileHeld(new ZoneThree());
+        rightButton4.whileHeld(new ZoneFour());
+        //rightButton5.whenPressed(new ResetEncodersTest());
+        //rightButton2.whileHeld(new WinchPull());
 
         //left stick
         leftTrigger.whileHeld(new LaunchBalls());
-        leftButton4.whenPressed(new AlignToTarget());
-        leftButton6.whenPressed(new AlignToTarget2());
+        leftButton4.whenPressed(new AlignToTarget2());
     }
 
     /**
@@ -167,32 +170,32 @@ public class RobotContainer {
         // An ExampleCommand will run in autonomous
 
         //Pathweaver stuff
-    trajectoryJSON = "paths/Test1.wpilib.json";
-    trajectoryPath =  Filesystem.getDeployDirectory().toPath().resolve(trajectoryJSON);
-    try {
-      test1Trajectory = TrajectoryUtil.fromPathweaverJson(trajectoryPath);
-    }
-    catch (IOException ex) {
-      DriverStation.reportError("Unable to open trajectory: " + trajectoryJSON, ex.getStackTrace());
-    }
+        trajectoryJSON = "paths/test3.wpilib.json";
+        trajectoryPath =  Filesystem.getDeployDirectory().toPath().resolve(trajectoryJSON);
+        try {
+        test1Trajectory = TrajectoryUtil.fromPathweaverJson(trajectoryPath);
+        }
+        catch (IOException ex) {
+        DriverStation.reportError("Unable to open trajectory: " + trajectoryJSON, ex.getStackTrace());
+        }
 
-    ramseteCommand = new RamseteCommand(
-        test1Trajectory,
-        Robot.m_drivetrain::getPose,
-        new RamseteController(PathweaverConstants.kRamseteB, PathweaverConstants.kRamseteZeta),
-        new SimpleMotorFeedforward(PathweaverConstants.ksVolts,
-                                   PathweaverConstants.kvVoltSecondsPerMeter,
-                                   PathweaverConstants.kaVoltSecondsSquaredPerMeter),
-        PathweaverConstants.kDriveKinematics,
-        Robot.m_drivetrain::getWheelSpeeds,
-        new PIDController(PathweaverConstants.kPDriveVel, 0, 0),
-        new PIDController(PathweaverConstants.kPDriveVel, 0, 0),
-        // RamseteCommand passes volts to the callback
-        Robot.m_drivetrain::driveByVolts,
-        Robot.m_drivetrain
-    );
+        ramseteCommand = new RamseteCommand(
+            test1Trajectory,
+            Robot.m_drivetrain::getPose,
+            new RamseteController(PathweaverConstants.kRamseteB, PathweaverConstants.kRamseteZeta),
+            new SimpleMotorFeedforward(PathweaverConstants.ksVolts,
+                                    PathweaverConstants.kvVoltSecondsPerMeter,
+                                    PathweaverConstants.kaVoltSecondsSquaredPerMeter),
+            PathweaverConstants.kDriveKinematics,
+            Robot.m_drivetrain::getWheelSpeeds,
+            new PIDController(PathweaverConstants.kPDriveVel, 0, 0),
+            new PIDController(PathweaverConstants.kPDriveVel, 0, 0),
+            // RamseteCommand passes volts to the callback
+            Robot.m_drivetrain::driveByVolts,
+            Robot.m_drivetrain
+        );
 
-    Robot.m_drivetrain.resetOdometry(test1Trajectory.getInitialPose());
-    return ramseteCommand.andThen(() -> Robot.m_drivetrain.driveByVolts(0, 0));
+        Robot.m_drivetrain.resetOdometry(test1Trajectory.getInitialPose());
+        return ramseteCommand.andThen(() -> Robot.m_drivetrain.driveByVolts(0, 0));
     }
 }
