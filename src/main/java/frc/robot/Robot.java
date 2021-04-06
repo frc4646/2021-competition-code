@@ -108,7 +108,7 @@ public class Robot extends TimedRobot {
   public void autonomousInit() {
     Robot.m_drivetrain.resetEncoders();
     Robot.m_drivetrain.zeroHeading();
-    Robot.m_drivetrain.resetOdometry(new Pose2d(0, 0, Rotation2d.fromDegrees(0)));
+    //Robot.m_drivetrain.resetOdometry(new Pose2d(0, 0, Rotation2d.fromDegrees(0)));
 
     m_autonomousCommand = m_robotContainer.getAutonomousCommand();
 

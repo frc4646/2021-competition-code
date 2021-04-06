@@ -136,6 +136,7 @@ public class RobotContainer {
         m_chooser.addOption("Slalom", PathCommand("Slalom"));
         m_chooser.addOption("Straight", PathCommand("Straight"));
         m_chooser.addOption("Straight By Code", StraightByCode());
+        m_chooser.addOption("Barrel Racer By Code", BarrelRacerByCode());
         SmartDashboard.putData(m_chooser);
     }
 
@@ -217,7 +218,8 @@ public class RobotContainer {
         SmartDashboard.putString("Initial Pose", "(" + decimalScale.format(test1Trajectory.getInitialPose().getX()) + ", " + decimalScale.format(test1Trajectory.getInitialPose().getY()) + ")");
         SmartDashboard.putString("Pose", test1Trajectory.getInitialPose().toString());
         System.out.println(test1Trajectory.getInitialPose().toString());
-        Robot.m_drivetrain.resetOdometry(test1Trajectory.getInitialPose());
+        //Robot.m_drivetrain.resetOdometry(test1Trajectory.getInitialPose());
+        Robot.m_drivetrain.resetOdometry(new Pose2d(0, 0f, new Rotation2d(0)));
         return ramseteCommand.andThen(() -> Robot.m_drivetrain.driveByVolts(0, 0));
     }
 
@@ -244,6 +246,64 @@ public class RobotContainer {
             new Pose2d(0,0, new Rotation2d(0)), 
             List.of(new Translation2d(1,0)), 
             new Pose2d(3,0, new Rotation2d(0)), 
+            config);
+
+        RamseteCommand ramseteCommand = new RamseteCommand(
+            straightTrajectory,
+            Robot.m_drivetrain::getPose,
+            new RamseteController(PathweaverConstants.kRamseteB, PathweaverConstants.kRamseteZeta),
+            new SimpleMotorFeedforward(PathweaverConstants.ksVolts,
+                    PathweaverConstants.kvVoltSecondsPerMeter,
+                    PathweaverConstants.kaVoltSecondsSquaredPerMeter),
+                    PathweaverConstants.kDriveKinematics,
+            Robot.m_drivetrain::getWheelSpeeds,
+            new PIDController(PathweaverConstants.kPDriveVel, 0, 0),
+            new PIDController(PathweaverConstants.kPDriveVel, 0, 0),
+            // RamseteCommand passes volts to the callback
+            Robot.m_drivetrain::driveByVolts,
+            Robot.m_drivetrain
+        );
+    
+        // Reset odometry to the starting pose of the trajectory.
+        Robot.m_drivetrain.resetOdometry(straightTrajectory.getInitialPose());
+    
+        // Run path following command, then stop at the end.
+        return ramseteCommand.andThen(() -> Robot.m_drivetrain.driveByVolts(0, 0));
+    }
+
+    public Command BarrelRacerByCode()
+    {
+        var autoVoltageConstraint =
+        new DifferentialDriveVoltageConstraint(
+            new SimpleMotorFeedforward(PathweaverConstants.ksVolts,
+                                    PathweaverConstants.kvVoltSecondsPerMeter,
+                                    PathweaverConstants.kaVoltSecondsSquaredPerMeter),
+            PathweaverConstants.kDriveKinematics,
+            10);
+
+        // Create config for trajectory
+        TrajectoryConfig config =
+            new TrajectoryConfig(PathweaverConstants.kMaxSpeedMetersPerSecond,
+                                PathweaverConstants.kMaxAccelerationMetersPerSecondSquared)
+                // Add kinematics to ensure max speed is actually obeyed
+                .setKinematics(PathweaverConstants.kDriveKinematics)
+                // Apply the voltage constraint
+                .addConstraint(autoVoltageConstraint);
+                
+        Trajectory straightTrajectory = TrajectoryGenerator.generateTrajectory(
+            new Pose2d(0,0, new Rotation2d(0)), 
+            List.of(new Translation2d(4f,0f),
+                    new Translation2d(4f, -1.7f),
+                    new Translation2d(2f, -1.7f),
+                    new Translation2d(2f, 0f),
+                    new Translation2d(6f, 0f),
+                    new Translation2d(6f, 1.7f),
+                    new Translation2d(4f, 1.7f),
+                    new Translation2d(4f, -1.7f),
+                    new Translation2d(8f, -1.7f),
+                    new Translation2d(8f, 0f),
+                    new Translation2d(6f, -0.5f)),
+            new Pose2d(0,0, new Rotation2d(180)), 
             config);
 
         RamseteCommand ramseteCommand = new RamseteCommand(
