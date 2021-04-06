@@ -18,7 +18,6 @@ import frc.robot.commands.DriveTeleOp;
 
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.cscore.CvSink;
-import edu.wpi.cscore.CvSource;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -35,7 +34,7 @@ public class Robot extends TimedRobot {
   public static Intake m_intake;
   public static Launcher m_launcher;
   public static Limelight m_limelight;
-  public static PhotonVision m_photonVision;
+  //public static PhotonVision m_photonVision;
   public static RobotContainer m_robotContainer;
 
   public static DriveToLaunch m_autonomousDriveToLaunch;
@@ -58,7 +57,7 @@ public class Robot extends TimedRobot {
     m_intake = new Intake();
     m_launcher = new Launcher();
     m_limelight = new Limelight();
-    m_photonVision = new PhotonVision();
+    //m_photonVision = new PhotonVision();
     m_robotContainer = new RobotContainer();
 
     m_autonomousDriveToLaunch = new DriveToLaunch();

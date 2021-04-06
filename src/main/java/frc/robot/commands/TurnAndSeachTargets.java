@@ -9,7 +9,7 @@ import frc.robot.Robot;
 
 public class TurnAndSeachTargets extends CommandBase {
   /** Creates a new TurnAndSeachTargets. */
-  double wantedAngle;
+  /*double wantedAngle;
   double largestTargetArea;
   public TurnAndSeachTargets() {
     // Use addRequirements() here to declare subsystem dependencies.
@@ -45,5 +45,5 @@ public class TurnAndSeachTargets extends CommandBase {
   @Override
   public boolean isFinished() {
     return Robot.m_drivetrain.atTargetAngle();
-  }
+  }*/
 }

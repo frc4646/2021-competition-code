@@ -14,8 +14,8 @@ public class PathweaverConstants{
         new DifferentialDriveKinematics(kTrackwidthMeters);
     
     //Our values
-    public static final double kMaxSpeedMetersPerSecond = 4.00f;
-    public static final double kMaxAccelerationMetersPerSecondSquared = .50f; //Was 2.00f
+    public static final double kMaxSpeedMetersPerSecond = 2.00f; //Was 4.00f
+    public static final double kMaxAccelerationMetersPerSecondSquared = .20f; //Was 2.00f
 
     //Default values
     public static final double kRamseteB = 2;

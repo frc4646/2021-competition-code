@@ -16,6 +16,7 @@ import frc.robot.commands.*;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj2.command.button.*;
 import frc.robot.Robot;
+import frc.robot.commandGroups.GalacticSearch;
 //Pathweaver stuff
 import frc.robot.PathweaverConstants;
 
@@ -27,6 +28,9 @@ import edu.wpi.first.wpilibj.trajectory.TrajectoryGenerator;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.geometry.Translation2d;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+
 import java.util.List;
 import java.nio.file.Path;
 import edu.wpi.first.wpilibj.Filesystem;
@@ -36,6 +40,8 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.RamseteCommand;
 import edu.wpi.first.wpilibj.controller.RamseteController;
 import edu.wpi.first.wpilibj.controller.PIDController;
+
+import java.text.DecimalFormat;
 
 /**
  * This class is where the bulk of the robot should be declared. Since
@@ -47,15 +53,18 @@ import edu.wpi.first.wpilibj.controller.PIDController;
 public class RobotContainer {
     // The robot's subsystems and commands are defined here...
 
-    public final Joystick leftJoy = new Joystick(Constants.leftJoyPort);
-    public final Joystick rightJoy = new Joystick(Constants.rightJoyPort);
-    public final Joystick mechJoy = new Joystick(Constants.mechJoyPort);
+    private final SendableChooser<Command> m_chooser = new SendableChooser<>();
+    public DecimalFormat decimalScale = new DecimalFormat("#,###.##");
 
     //Pathwever
-    public String trajectoryJSON;
+    private String trajectoryJSON;
     private Trajectory test1Trajectory;
     private Path trajectoryPath;
     private RamseteCommand ramseteCommand;
+
+    public final Joystick leftJoy = new Joystick(Constants.leftJoyPort);
+    public final Joystick rightJoy = new Joystick(Constants.rightJoyPort);
+    public final Joystick mechJoy = new Joystick(Constants.mechJoyPort);
 
     public JoystickButton leftTrigger = new JoystickButton(leftJoy, 1), leftButton2 = new JoystickButton(leftJoy, 2),
             leftButton3 = new JoystickButton(leftJoy, 3), leftButton4 = new JoystickButton(leftJoy, 4),
@@ -121,6 +130,13 @@ public class RobotContainer {
     public RobotContainer() {
         // Configure the button bindings
         configureButtonBindings();
+
+        m_chooser.setDefaultOption("Barrel Racer", PathCommand("BarrelRacer"));
+        m_chooser.addOption("Bounce", PathCommand("Bounce"));
+        m_chooser.addOption("Slalom", PathCommand("Slalom"));
+        m_chooser.addOption("Straight", PathCommand("Straight"));
+        m_chooser.addOption("Straight By Code", StraightByCode());
+        SmartDashboard.putData(m_chooser);
     }
 
     /**
@@ -143,9 +159,9 @@ public class RobotContainer {
         // Right Hand
         mechButton5.whileHeld(new DeployIntake());
         mechButton3.whileHeld(new RetractIntake());
-        mechButton6.whileHeld(new ElevatorUp());
-        mechButton4.whileHeld(new ElevatorDown());
-        mechButton2.whileHeld(new IndexOne());
+        //mechButton6.whileHeld(new ElevatorUp());
+        //mechButton4.whileHeld(new ElevatorDown());
+        //mechButton2.whileHeld(new IndexOne());
 
         // right stick
         rightTrigger.whileHeld(new DriveStraight());
@@ -168,9 +184,12 @@ public class RobotContainer {
      */
     public Command getAutonomousCommand() {
         // An ExampleCommand will run in autonomous
+        return m_chooser.getSelected();
+    }
 
-        //Pathweaver stuff
-        trajectoryJSON = "paths/test3.wpilib.json";
+    public Command PathCommand(String trajectoryName)
+    {
+        trajectoryJSON = "paths/"+ trajectoryName + ".wpilib.json";
         trajectoryPath =  Filesystem.getDeployDirectory().toPath().resolve(trajectoryJSON);
         try {
         test1Trajectory = TrajectoryUtil.fromPathweaverJson(trajectoryPath);
@@ -194,8 +213,59 @@ public class RobotContainer {
             Robot.m_drivetrain::driveByVolts,
             Robot.m_drivetrain
         );
-
+        System.out.println("Initial Pose" + decimalScale.format(test1Trajectory.getInitialPose().getX()) + ", " + decimalScale.format(test1Trajectory.getInitialPose().getY()) + ")");
+        SmartDashboard.putString("Initial Pose", "(" + decimalScale.format(test1Trajectory.getInitialPose().getX()) + ", " + decimalScale.format(test1Trajectory.getInitialPose().getY()) + ")");
+        SmartDashboard.putString("Pose", test1Trajectory.getInitialPose().toString());
+        System.out.println(test1Trajectory.getInitialPose().toString());
         Robot.m_drivetrain.resetOdometry(test1Trajectory.getInitialPose());
+        return ramseteCommand.andThen(() -> Robot.m_drivetrain.driveByVolts(0, 0));
+    }
+
+    public Command StraightByCode()
+    {
+        var autoVoltageConstraint =
+        new DifferentialDriveVoltageConstraint(
+            new SimpleMotorFeedforward(PathweaverConstants.ksVolts,
+                                    PathweaverConstants.kvVoltSecondsPerMeter,
+                                    PathweaverConstants.kaVoltSecondsSquaredPerMeter),
+            PathweaverConstants.kDriveKinematics,
+            10);
+
+        // Create config for trajectory
+        TrajectoryConfig config =
+            new TrajectoryConfig(PathweaverConstants.kMaxSpeedMetersPerSecond,
+                                PathweaverConstants.kMaxAccelerationMetersPerSecondSquared)
+                // Add kinematics to ensure max speed is actually obeyed
+                .setKinematics(PathweaverConstants.kDriveKinematics)
+                // Apply the voltage constraint
+                .addConstraint(autoVoltageConstraint);
+                
+        Trajectory straightTrajectory = TrajectoryGenerator.generateTrajectory(
+            new Pose2d(0,0, new Rotation2d(0)), 
+            List.of(new Translation2d(1,0)), 
+            new Pose2d(3,0, new Rotation2d(0)), 
+            config);
+
+        RamseteCommand ramseteCommand = new RamseteCommand(
+            straightTrajectory,
+            Robot.m_drivetrain::getPose,
+            new RamseteController(PathweaverConstants.kRamseteB, PathweaverConstants.kRamseteZeta),
+            new SimpleMotorFeedforward(PathweaverConstants.ksVolts,
+                    PathweaverConstants.kvVoltSecondsPerMeter,
+                    PathweaverConstants.kaVoltSecondsSquaredPerMeter),
+                    PathweaverConstants.kDriveKinematics,
+            Robot.m_drivetrain::getWheelSpeeds,
+            new PIDController(PathweaverConstants.kPDriveVel, 0, 0),
+            new PIDController(PathweaverConstants.kPDriveVel, 0, 0),
+            // RamseteCommand passes volts to the callback
+            Robot.m_drivetrain::driveByVolts,
+            Robot.m_drivetrain
+        );
+    
+        // Reset odometry to the starting pose of the trajectory.
+        Robot.m_drivetrain.resetOdometry(straightTrajectory.getInitialPose());
+    
+        // Run path following command, then stop at the end.
         return ramseteCommand.andThen(() -> Robot.m_drivetrain.driveByVolts(0, 0));
     }
 }

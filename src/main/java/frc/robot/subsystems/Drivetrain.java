@@ -50,13 +50,13 @@ public class Drivetrain extends SubsystemBase {
   public double turn_tolerance;
   public double turn_derivativeTolerance;
   public double turn_error;
-  int maxEncoderTicks = 2048;
+  int maxEncoderTicks = 8192;
   double circumference = Math.PI * 6 * 0.0254; //pi * distance * inches to meters // about .4785
 
   private double leftDist;
   private double rightDist;
 
-  private DecimalFormat decimalScale = new DecimalFormat("#,###.##");
+  public DecimalFormat decimalScale = new DecimalFormat("#,###.##");
 
   private final Field2d m_field;
 
@@ -82,7 +82,7 @@ public class Drivetrain extends SubsystemBase {
     backLeftDrive.setInverted(true);
     backRightDrive.setInverted(false);
 
-    frontLeftDrive.setSensorPhase(true);
+    frontLeftDrive.setSensorPhase(false);
     frontRightDrive.setSensorPhase(false);
 
     frontLeftDrive.setSelectedSensorPosition(0);
@@ -117,20 +117,22 @@ public class Drivetrain extends SubsystemBase {
     SmartDashboard.putNumber("Left Counts", frontLeftDrive.getSelectedSensorPosition());
     SmartDashboard.putNumber("Right Counts", frontRightDrive.getSelectedSensorPosition());
 
-    leftDist =  (frontLeftDrive.getSelectedSensorPosition()/4)*(circumference/maxEncoderTicks);
-    rightDist = (frontRightDrive.getSelectedSensorPosition()/4)*(circumference/maxEncoderTicks);
+    leftDist =  (frontLeftDrive.getSelectedSensorPosition())*(circumference/maxEncoderTicks);
+    rightDist = (frontRightDrive.getSelectedSensorPosition())*(circumference/maxEncoderTicks);
 
     SmartDashboard.putNumber("Left Distance", leftDist);
     SmartDashboard.putNumber("Right Distance", rightDist);
 
-    odometry.update(navX.getRotation2d(), (frontLeftDrive.getSelectedSensorPosition()/4)*(circumference/maxEncoderTicks), 
-                                          (frontRightDrive.getSelectedSensorPosition()/4)*(circumference/maxEncoderTicks));
+    odometry.update(navX.getRotation2d(), leftDist, rightDist);
 
     SmartDashboard.putNumber("NavX Heading", getHeading());
 
     SmartDashboard.putString("Odemetry Pos", "(" + decimalScale.format(odometry.getPoseMeters().getX()) + ", " + decimalScale.format(odometry.getPoseMeters().getY()) + ")");
     //SmartDashboard.putNumber("Odemetry Y", odometry.getPoseMeters().getY());
     SmartDashboard.putNumber("Odemetry Rotation", odometry.getPoseMeters().getRotation().getDegrees());
+
+    
+    SmartDashboard.putString("Wheel Speeds", "(" + decimalScale.format(getWheelSpeeds().leftMetersPerSecond) + ", " + decimalScale.format(getWheelSpeeds().rightMetersPerSecond) + ")");
 
     m_field.setRobotPose(odometry.getPoseMeters());
   }
@@ -159,8 +161,9 @@ public class Drivetrain extends SubsystemBase {
     frontRightDrive.set(ControlMode.PercentOutput, -calculatedPID);
   }
 
+  // Tested: Negative, negative
   public void driveByVolts(double leftVolts, double rightVolts) {
-    frontLeftDrive.setVoltage(leftVolts);
+    frontLeftDrive.setVoltage(-leftVolts);
     frontRightDrive.setVoltage(-rightVolts);
   }
 
@@ -224,7 +227,7 @@ public class Drivetrain extends SubsystemBase {
   }
 
   public DifferentialDriveWheelSpeeds getWheelSpeeds() {
-    return new DifferentialDriveWheelSpeeds(frontLeftDrive.getSelectedSensorVelocity()*(circumference/maxEncoderTicks)/10, frontRightDrive.getSelectedSensorVelocity()*(circumference/maxEncoderTicks)/10);
+    return new DifferentialDriveWheelSpeeds(frontLeftDrive.getSelectedSensorVelocity()*(circumference/maxEncoderTicks)*10, frontRightDrive.getSelectedSensorVelocity()*(circumference/maxEncoderTicks)*10);
   }
 
   /*public void arcadeDrive(double xSpeed, double zRotation)
