@@ -108,7 +108,7 @@ public class Robot extends TimedRobot {
   public void autonomousInit() {
     Robot.m_drivetrain.resetEncoders();
     Robot.m_drivetrain.zeroHeading();
-    //Robot.m_drivetrain.resetOdometry(new Pose2d(0, 0, Rotation2d.fromDegrees(0)));
+    Robot.m_drivetrain.resetOdometry(new Pose2d(0, 0, Rotation2d.fromDegrees(0)));
 
     m_autonomousCommand = m_robotContainer.getAutonomousCommand();
 
@@ -127,9 +127,9 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopInit() {
-    Robot.m_drivetrain.resetEncoders();
-    Robot.m_drivetrain.zeroHeading();
-    Robot.m_drivetrain.resetOdometry(new Pose2d(0, 0, Rotation2d.fromDegrees(0)));
+    //Robot.m_drivetrain.resetEncoders();
+    //Robot.m_drivetrain.zeroHeading();
+    //Robot.m_drivetrain.resetOdometry(new Pose2d(0, 0, Rotation2d.fromDegrees(0)));
     
     // This makes sure that the autonomous stops running when
     // teleop starts running. If you want the autonomous to

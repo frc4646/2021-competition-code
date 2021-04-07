@@ -154,6 +154,15 @@ public class Drivetrain extends SubsystemBase {
     //frontRightDrive.set(ControlMode.Position, rightCount);
   }
 
+  public void driveByEncoderMetter(float leftMeters, float rightMeters)
+  {
+    leftDist =  (frontLeftDrive.getSelectedSensorPosition())*(circumference/maxEncoderTicks);
+    rightDist = (frontRightDrive.getSelectedSensorPosition())*(circumference/maxEncoderTicks);
+
+    frontLeftDrive.setVoltage(0.5f);
+    frontRightDrive.setVoltage(0.5f);
+  }
+
   public void driveToHeading(double targetAngle)
   {
     double calculatedPID = turn_PID.calculate(getAngle(), targetAngle);

@@ -136,7 +136,9 @@ public class RobotContainer {
         m_chooser.addOption("Slalom", PathCommand("Slalom"));
         m_chooser.addOption("Straight", PathCommand("Straight"));
         m_chooser.addOption("Straight By Code", StraightByCode());
-        m_chooser.addOption("Barrel Racer By Code", BarrelRacerByCode());
+        m_chooser.addOption("Barrel Racer By Code", PathCommandByCode("Barrel Racer"));
+        m_chooser.addOption("Bounce By Code", PathCommandByCode("Bounce"));
+        m_chooser.addOption("Slalom By Code", PathCommandByCode("Slalom"));
         SmartDashboard.putData(m_chooser);
     }
 
@@ -218,8 +220,7 @@ public class RobotContainer {
         SmartDashboard.putString("Initial Pose", "(" + decimalScale.format(test1Trajectory.getInitialPose().getX()) + ", " + decimalScale.format(test1Trajectory.getInitialPose().getY()) + ")");
         SmartDashboard.putString("Pose", test1Trajectory.getInitialPose().toString());
         System.out.println(test1Trajectory.getInitialPose().toString());
-        //Robot.m_drivetrain.resetOdometry(test1Trajectory.getInitialPose());
-        Robot.m_drivetrain.resetOdometry(new Pose2d(0, 0f, new Rotation2d(0)));
+        Robot.m_drivetrain.resetOdometry(test1Trajectory.getInitialPose());
         return ramseteCommand.andThen(() -> Robot.m_drivetrain.driveByVolts(0, 0));
     }
 
@@ -271,8 +272,9 @@ public class RobotContainer {
         return ramseteCommand.andThen(() -> Robot.m_drivetrain.driveByVolts(0, 0));
     }
 
-    public Command BarrelRacerByCode()
+    public Command PathCommandByCode(String trajectoryName)
     {
+
         var autoVoltageConstraint =
         new DifferentialDriveVoltageConstraint(
             new SimpleMotorFeedforward(PathweaverConstants.ksVolts,
@@ -289,25 +291,34 @@ public class RobotContainer {
                 .setKinematics(PathweaverConstants.kDriveKinematics)
                 // Apply the voltage constraint
                 .addConstraint(autoVoltageConstraint);
-                
-        Trajectory straightTrajectory = TrajectoryGenerator.generateTrajectory(
+        List<Translation2d> interiorWaypoints;
+        switch (trajectoryName)
+        {
+            case "Barrel Racer":
+                interiorWaypoints = BarrelRacerByCodeValues();
+                break;
+
+            case "Bounce":
+                interiorWaypoints = BounceByCodeValues();
+                break;
+
+            case "Slalom":
+                interiorWaypoints = SlalomByCodeValues();
+                break;
+            
+            default:
+                interiorWaypoints = BarrelRacerByCodeValues();
+                break;
+
+        }
+        Trajectory trajectory = TrajectoryGenerator.generateTrajectory(
             new Pose2d(0,0, new Rotation2d(0)), 
-            List.of(new Translation2d(4f,0f),
-                    new Translation2d(4f, -1.7f),
-                    new Translation2d(2f, -1.7f),
-                    new Translation2d(2f, 0f),
-                    new Translation2d(6f, 0f),
-                    new Translation2d(6f, 1.7f),
-                    new Translation2d(4f, 1.7f),
-                    new Translation2d(4f, -1.7f),
-                    new Translation2d(8f, -1.7f),
-                    new Translation2d(8f, 0f),
-                    new Translation2d(6f, -0.5f)),
+            interiorWaypoints,
             new Pose2d(0,0, new Rotation2d(180)), 
             config);
 
         RamseteCommand ramseteCommand = new RamseteCommand(
-            straightTrajectory,
+            trajectory,
             Robot.m_drivetrain::getPose,
             new RamseteController(PathweaverConstants.kRamseteB, PathweaverConstants.kRamseteZeta),
             new SimpleMotorFeedforward(PathweaverConstants.ksVolts,
@@ -323,9 +334,124 @@ public class RobotContainer {
         );
     
         // Reset odometry to the starting pose of the trajectory.
-        Robot.m_drivetrain.resetOdometry(straightTrajectory.getInitialPose());
+        Robot.m_drivetrain.resetOdometry(trajectory.getInitialPose());
     
         // Run path following command, then stop at the end.
         return ramseteCommand.andThen(() -> Robot.m_drivetrain.driveByVolts(0, 0));
     }
+
+    public List<Translation2d> BarrelRacerByCodeValues()
+    {
+        return List.of(
+            new Translation2d(0.381,  0),
+            new Translation2d(0.762,  0),
+            new Translation2d(1.143,  0),
+            new Translation2d(1.524,  0),
+            new Translation2d(1.905,  0),
+            new Translation2d(2.286,  0),
+            new Translation2d(2.667,  0),
+            new Translation2d(3.048,  0),
+            new Translation2d(3.429,  0),
+            new Translation2d(3.710,  0),
+            new Translation2d(4.000,  -0.381),
+            new Translation2d(4.000,  -0.762),
+            new Translation2d(4.000,  -1.300),
+            new Translation2d(3.81,   -1.700),
+            new Translation2d(3.429,  -1.700),
+            new Translation2d(3.048,  -1.700),
+            new Translation2d(2.667,  -1.700),
+            new Translation2d(2.286,  -1.700),
+            new Translation2d(1.905,  -1.143),
+            new Translation2d(1.905,  -0.762),
+            new Translation2d(1.905,  -0.381),
+            new Translation2d(2.286,  0.50),
+            new Translation2d(2.667,  0.25),
+            new Translation2d(3.048,  0.125),
+            new Translation2d(3.429,  0),
+            new Translation2d(3.81,   0),
+            new Translation2d(4.191,  0),
+            new Translation2d(4.572,  0),
+            new Translation2d(4.953,  0),
+            new Translation2d(5.334,  0),
+            new Translation2d(5.715,  0),
+            new Translation2d(5.9,  0),
+            new Translation2d(6.2,  0.381),
+            new Translation2d(6.2,  0.762),
+            new Translation2d(6.2,  1.143),
+            new Translation2d(6.0,  1.700),
+            new Translation2d(5.715,  1.700),
+            new Translation2d(5.334,  1.700),
+            new Translation2d(4.953,  1.700),
+            new Translation2d(4.572,  1.700),
+            new Translation2d(4.191,  1.700),
+            new Translation2d(4.191,  0.762),
+            new Translation2d(4.191,  0.381),
+            new Translation2d(4.572,  0),
+            new Translation2d(4.953,  -0.381),
+            new Translation2d(5.334,  -0.762),
+            new Translation2d(5.715,  -1.143),
+            new Translation2d(6.096,  -1.524),
+            new Translation2d(6.477,  -1.524),
+            new Translation2d(6.858,  -1.524),
+            new Translation2d(7.239,  -1.524),
+            new Translation2d(7.62,   -1.524),
+            new Translation2d(8.001,  -1.143),
+            new Translation2d(8.001,  -0.762),
+            new Translation2d(8.001,  -0.381),
+            new Translation2d(7.62,   0),
+            new Translation2d(7.239,  0),
+            new Translation2d(6.858,  0),
+            new Translation2d(6.477,  0),
+            new Translation2d(6.096,  0),
+            new Translation2d(5.715,  0),
+            new Translation2d(5.334,  0),
+            new Translation2d(4.953,  0),
+            new Translation2d(4.572,  0),
+            new Translation2d(4.191,  0),
+            new Translation2d(3.81,   0),
+            new Translation2d(3.429,  0),
+            new Translation2d(3.048,  0),
+            new Translation2d(2.667,  0),
+            new Translation2d(2.286,  0),
+            new Translation2d(1.905,  0),
+            new Translation2d(1.524,  0),
+            new Translation2d(1.143,  0),
+            new Translation2d(0.762,  0),
+            new Translation2d(0.381,  0)
+        );
+    }  
+    
+    public List<Translation2d> BounceByCodeValues()
+    {
+        return List.of(
+            new Translation2d(4f,0f),
+            new Translation2d(4f, -1.7f),
+            new Translation2d(2f, -1.7f),
+            new Translation2d(2f, 0f),
+            new Translation2d(6f, 0f),
+            new Translation2d(6f, 1.7f),
+            new Translation2d(4f, 1.7f),
+            new Translation2d(4f, -1.7f),
+            new Translation2d(8f, -1.7f),
+            new Translation2d(8f, 0f),
+            new Translation2d(6f, -0.5f)
+        );
+    }  
+
+    public List<Translation2d> SlalomByCodeValues()
+    {
+        return List.of(
+            new Translation2d(4f,0f),
+            new Translation2d(4f, -1.7f),
+            new Translation2d(2f, -1.7f),
+            new Translation2d(2f, 0f),
+            new Translation2d(6f, 0f),
+            new Translation2d(6f, 1.7f),
+            new Translation2d(4f, 1.7f),
+            new Translation2d(4f, -1.7f),
+            new Translation2d(8f, -1.7f),
+            new Translation2d(8f, 0f),
+            new Translation2d(6f, -0.5f)
+        );
+    }    
 }
