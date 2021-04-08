@@ -232,6 +232,7 @@ public class RobotContainer {
         Command resetCommand = new InstantCommand(() -> Robot.m_drivetrain.resetOdometry(test1Trajectory.getInitialPose()));
         // Create CommandGroup of the resetCommand and our ramseteCommand
         Command returnGroup = new SequentialCommandGroup(resetCommand, ramseteCommand.andThen(() -> Robot.m_drivetrain.driveByVolts(0, 0)));
+        return returnGroup;
     }
 
     public Command StraightByCode()
