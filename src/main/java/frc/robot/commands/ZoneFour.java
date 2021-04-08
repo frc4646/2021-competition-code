@@ -26,7 +26,7 @@ public class ZoneFour extends CommandBase {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    Robot.m_launcher.setSpeed(0.85f);
+    Robot.m_launcher.setSpeed(0.83f);
     Timer.delay(1.5f);
     Robot.m_conveyor.UpTopConveyor();
     Robot.m_conveyor.UpBottomConveyor();

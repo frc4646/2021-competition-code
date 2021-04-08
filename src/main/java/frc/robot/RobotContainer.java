@@ -43,6 +43,10 @@ import edu.wpi.first.wpilibj.controller.PIDController;
 
 import java.text.DecimalFormat;
 
+
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+
 /**
  * This class is where the bulk of the robot should be declared. Since
  * Command-based is a "declarative" paradigm, very little robot logic should
@@ -220,8 +224,14 @@ public class RobotContainer {
         SmartDashboard.putString("Initial Pose", "(" + decimalScale.format(test1Trajectory.getInitialPose().getX()) + ", " + decimalScale.format(test1Trajectory.getInitialPose().getY()) + ")");
         SmartDashboard.putString("Pose", test1Trajectory.getInitialPose().toString());
         System.out.println(test1Trajectory.getInitialPose().toString());
-        Robot.m_drivetrain.resetOdometry(test1Trajectory.getInitialPose());
-        return ramseteCommand.andThen(() -> Robot.m_drivetrain.driveByVolts(0, 0));
+
+        //Robot.m_drivetrain.resetOdometry(test1Trajectory.getInitialPose());
+        //return ramseteCommand.andThen(() -> Robot.m_drivetrain.driveByVolts(0, 0));
+
+        // Reset robot odometry to initial position of path
+        Command resetCommand = new InstantCommand(() -> Robot.m_drivetrain.resetOdometry(test1Trajectory.getInitialPose()));
+        // Create CommandGroup of the resetCommand and our ramseteCommand
+        Command returnGroup = new SequentialCommandGroup(resetCommand, ramseteCommand.andThen(() -> Robot.m_drivetrain.driveByVolts(0, 0)));
     }
 
     public Command StraightByCode()
@@ -343,6 +353,7 @@ public class RobotContainer {
     public List<Translation2d> BarrelRacerByCodeValues()
     {
         return List.of(
+            new Translation2d(0.000, 0),
             new Translation2d(0.381,  0),
             new Translation2d(0.762,  0),
             new Translation2d(1.143,  0),
@@ -352,21 +363,21 @@ public class RobotContainer {
             new Translation2d(2.667,  0),
             new Translation2d(3.048,  0),
             new Translation2d(3.429,  0),
-            new Translation2d(3.710,  0),
-            new Translation2d(4.000,  -0.381),
-            new Translation2d(4.000,  -0.762),
-            new Translation2d(4.000,  -1.300),
-            new Translation2d(3.81,   -1.700),
-            new Translation2d(3.429,  -1.700),
-            new Translation2d(3.048,  -1.700),
-            new Translation2d(2.667,  -1.700),
-            new Translation2d(2.286,  -1.700),
+            new Translation2d(3.810,  0),
+            new Translation2d(4.191, -0.381),
+            new Translation2d(4.191,  -0.762),
+            new Translation2d(4.191,  -1.143),
+            new Translation2d(3.81,   -1.524),
+            new Translation2d(3.429,  -1.524),
+            new Translation2d(3.048,  -1.524),
+            new Translation2d(2.667,  -1.524),
+            new Translation2d(2.286,  -1.524),
             new Translation2d(1.905,  -1.143),
             new Translation2d(1.905,  -0.762),
             new Translation2d(1.905,  -0.381),
-            new Translation2d(2.286,  0.50),
-            new Translation2d(2.667,  0.25),
-            new Translation2d(3.048,  0.125),
+            new Translation2d(2.286,  0),
+            new Translation2d(2.667,  0),
+            new Translation2d(3.048,  0),
             new Translation2d(3.429,  0),
             new Translation2d(3.81,   0),
             new Translation2d(4.191,  0),
@@ -374,16 +385,16 @@ public class RobotContainer {
             new Translation2d(4.953,  0),
             new Translation2d(5.334,  0),
             new Translation2d(5.715,  0),
-            new Translation2d(5.9,  0),
-            new Translation2d(6.2,  0.381),
-            new Translation2d(6.2,  0.762),
-            new Translation2d(6.2,  1.143),
-            new Translation2d(6.0,  1.700),
-            new Translation2d(5.715,  1.700),
-            new Translation2d(5.334,  1.700),
-            new Translation2d(4.953,  1.700),
-            new Translation2d(4.572,  1.700),
-            new Translation2d(4.191,  1.700),
+            new Translation2d(6.096,  0),
+            new Translation2d(6.477,  0.381),
+            new Translation2d(6.477,  0.762),
+            new Translation2d(6.477,  1.143),
+            new Translation2d(6.096,  1.524),
+            new Translation2d(5.715,  1.524),
+            new Translation2d(5.334,  1.524),
+            new Translation2d(4.953,  1.524),
+            new Translation2d(4.572,  1.524),
+            new Translation2d(4.191,  1.143),
             new Translation2d(4.191,  0.762),
             new Translation2d(4.191,  0.381),
             new Translation2d(4.572,  0),
@@ -398,9 +409,9 @@ public class RobotContainer {
             new Translation2d(8.001,  -1.143),
             new Translation2d(8.001,  -0.762),
             new Translation2d(8.001,  -0.381),
-            new Translation2d(7.62,   0),
-            new Translation2d(7.239,  0),
-            new Translation2d(6.858,  0),
+            new Translation2d(7.8,   0.3),
+            new Translation2d(7.4,  0.2),
+            new Translation2d(7,  0.1),
             new Translation2d(6.477,  0),
             new Translation2d(6.096,  0),
             new Translation2d(5.715,  0),
@@ -417,41 +428,120 @@ public class RobotContainer {
             new Translation2d(1.524,  0),
             new Translation2d(1.143,  0),
             new Translation2d(0.762,  0),
-            new Translation2d(0.381,  0)
+            new Translation2d(0.381,  0),
+            new Translation2d(0,      0)
         );
     }  
     
     public List<Translation2d> BounceByCodeValues()
     {
         return List.of(
-            new Translation2d(4f,0f),
-            new Translation2d(4f, -1.7f),
-            new Translation2d(2f, -1.7f),
-            new Translation2d(2f, 0f),
-            new Translation2d(6f, 0f),
-            new Translation2d(6f, 1.7f),
-            new Translation2d(4f, 1.7f),
-            new Translation2d(4f, -1.7f),
-            new Translation2d(8f, -1.7f),
-            new Translation2d(8f, 0f),
-            new Translation2d(6f, -0.5f)
+            new Translation2d(0.000,0.000),
+            new Translation2d(0.381,0.000),
+            new Translation2d(0.762,0.000),
+            new Translation2d(1.143,0.381),
+            new Translation2d(1.524,0.762),
+            new Translation2d(1.524,1.143),
+            new Translation2d(1.524,1.524),
+            new Translation2d(1.524,1.143),
+            new Translation2d(1.524,0.762),
+            new Translation2d(1.715,0.381),
+            new Translation2d(1.905,0.000),
+            new Translation2d(2.096,-0.381),
+            new Translation2d(2.286,-0.762),
+            new Translation2d(2.477,-1.143),
+            new Translation2d(2.667,-1.524),
+            new Translation2d(3.048,-1.524),
+            new Translation2d(3.429,-1.524),
+            new Translation2d(3.810,-1.143),
+            new Translation2d(3.810,-0.762),
+            new Translation2d(3.810,-0.381),
+            new Translation2d(3.810,0.000),
+            new Translation2d(3.810,0.381),
+            new Translation2d(3.810,0.762),
+            new Translation2d(3.810,1.143),
+            new Translation2d(3.810,1.524),
+            new Translation2d(3.810,1.143),
+            new Translation2d(3.810,0.762),
+            new Translation2d(3.810,0.381),
+            new Translation2d(3.810,0.000),
+            new Translation2d(3.810,-0.381),
+            new Translation2d(3.810,-0.762),
+            new Translation2d(3.810,-1.143),
+            new Translation2d(4.191,-1.524),
+            new Translation2d(4.572,-1.524),
+            new Translation2d(4.953,-1.524),
+            new Translation2d(5.334,-1.524),
+            new Translation2d(5.715,-1.524),
+            new Translation2d(6.096,-1.143),
+            new Translation2d(6.096,-0.762),
+            new Translation2d(6.096,-0.381),
+            new Translation2d(6.096,0.000),
+            new Translation2d(6.096,0.381),
+            new Translation2d(6.096,0.762),
+            new Translation2d(6.096,1.143),
+            new Translation2d(6.096,1.524),
+            new Translation2d(6.477,1.143),
+            new Translation2d(6.858,0.762),
+            new Translation2d(7.239,0.381),
+            new Translation2d(7.620,0.000)
         );
     }  
 
     public List<Translation2d> SlalomByCodeValues()
     {
         return List.of(
-            new Translation2d(4f,0f),
-            new Translation2d(4f, -1.7f),
-            new Translation2d(2f, -1.7f),
-            new Translation2d(2f, 0f),
-            new Translation2d(6f, 0f),
-            new Translation2d(6f, 1.7f),
-            new Translation2d(4f, 1.7f),
-            new Translation2d(4f, -1.7f),
-            new Translation2d(8f, -1.7f),
-            new Translation2d(8f, 0f),
-            new Translation2d(6f, -0.5f)
+            new Translation2d(0.000, 0.000),
+            new Translation2d(0.381, 0.000),
+            new Translation2d(0.762, 0.000),
+            new Translation2d(1.143, 0.000),
+            new Translation2d(1.524, 0.381),
+            new Translation2d(1.524, 0.762),
+            new Translation2d(1.524, 1.143),
+            new Translation2d(1.905, 1.524),
+            new Translation2d(2.286, 1.524),
+            new Translation2d(2.667, 1.524),
+            new Translation2d(3.048, 1.524),
+            new Translation2d(3.429, 1.524),
+            new Translation2d(3.810, 1.524),
+            new Translation2d(4.191, 1.524),
+            new Translation2d(4.572, 1.524),
+            new Translation2d(4.953, 1.524),
+            new Translation2d(5.334, 1.524),
+            new Translation2d(5.715, 1.524),
+            new Translation2d(6.096, 1.143),
+            new Translation2d(6.096, 0.762),
+            new Translation2d(6.096, 0.381),
+            new Translation2d(6.477, 0.000),
+            new Translation2d(6.858, 0.000),
+            new Translation2d(7.239, 0.000),
+            new Translation2d(7.620, 0.381),
+            new Translation2d(7.620, 0.762),
+            new Translation2d(7.620, 1.143),
+            new Translation2d(7.239, 1.524),
+            new Translation2d(6.858, 1.524),
+            new Translation2d(6.477, 1.524),
+            new Translation2d(6.096, 1.143),
+            new Translation2d(6.096, 0.762),
+            new Translation2d(6.096, 0.381),
+            new Translation2d(5.715, 0.000),
+            new Translation2d(5.334, 0.000),
+            new Translation2d(4.953, 0.000),
+            new Translation2d(4.572, 0.000),
+            new Translation2d(4.191, 0.000),
+            new Translation2d(3.810, 0.000),
+            new Translation2d(3.429, 0.000),
+            new Translation2d(3.048, 0.000),
+            new Translation2d(2.667, 0.000),
+            new Translation2d(2.286, 0.000),
+            new Translation2d(1.905, 0.000),
+            new Translation2d(1.524, 0.381),
+            new Translation2d(1.524, 0.762),
+            new Translation2d(1.524, 1.143),
+            new Translation2d(1.143, 1.524),
+            new Translation2d(0.762, 1.524),
+            new Translation2d(0.381, 1.524),
+            new Translation2d(0.000, 1.524)
         );
     }    
 }
